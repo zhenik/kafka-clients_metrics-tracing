@@ -33,6 +33,8 @@ public class StreamsProcessing implements Runnable {
     return builder.build();
   }
 
+  public KafkaStreams getKafkaStreams() { return kafkaStreams; }
+
   @Override
   public void run() { kafkaStreams.start(); }
 

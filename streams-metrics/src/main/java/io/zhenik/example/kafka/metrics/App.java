@@ -9,7 +9,10 @@ import io.dropwizard.setup.Environment;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.hotspot.DefaultExports;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import org.apache.kafka.common.Metric;
+import org.apache.kafka.common.MetricName;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -68,6 +71,19 @@ public class App extends Application<AppConfig> {
     // Add metrics about CPU, JVM memory etc.
     DefaultExports.initialize();
     log.info("Prometheus metrics are available on {}",  environment.getAdminContext().getContextPath() + "prometheus/metrics");
+
+    final KafkaStreamsMetricsExports kafkaStreamsMetricsExports =
+        new KafkaStreamsMetricsExports(streamsProcessing.getKafkaStreams());
+    kafkaStreamsMetricsExports.register();
+
+    //final Map<MetricName, ? extends Metric> metrics = streamsProcessing.getKafkaStreams().metrics();
+    //metrics.forEach(
+    //    (k, v) -> {
+    //      System.out.println(k.name());
+    //      System.out.println(k.description());
+    //      System.out.println(v.metricValue());
+    //    });
+
   }
 
 

@@ -70,8 +70,5 @@ public class App extends Application<AppConfig> {
     log.info("Prometheus metrics are available on {}",  environment.getAdminContext().getContextPath() + "prometheus/metrics");
   }
 
-  private void initMetricsExport() throws Exception {
-
-  }
 
 }

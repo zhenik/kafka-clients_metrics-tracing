@@ -1,0 +1,19 @@
+---
+# consumer jmx
+hostPort: localhost:5555
+
+rules:
+  - pattern: kafka.consumer<type=(.+), client-id=(.+), topic=(.+)><>(bytes-consumed-total|records-consumed-total)
+    name: kafka_$1_$4
+    labels:
+      client-id: $2
+      topic: $3
+    type: COUNTER
+
+  #
+  # kafka_consumer_fetch_manager_metrics_records_lag_max{client_id="some_client-0",} 0.0
+  #
+  - pattern: kafka.consumer<type=(.+), client-id=(.+)><>(records-lag-max)
+    name: kafka_$1_$3
+    labels:
+      client-id: $2

@@ -1,22 +1,60 @@
 lowercaseOutputName: true
 
 rules:
-  #
-  # sample result
-  # kafka_consumer_fetch_manager_metrics_bytes_consumed_total{client_id="some_client-0",topic="some_topic",} 62818.0
-  # kafka_consumer_fetch_manager_metrics_records_consumed_total{client_id="some_client-0",topic="some_topic",} 137.0
-  #
-  - pattern: kafka.consumer<type=(.+), client-id=(.+), topic=(.+)><>(bytes-consumed-total|records-consumed-total)
-    name: kafka_$1_$4
-    labels:
-      client-id: $2
-      topic: $3
-    type: COUNTER
+- pattern: ".*"
 
-  #
-  # kafka_consumer_fetch_manager_metrics_records_lag_max{client_id="some_client-0",} 0.0
-  #
-  - pattern: kafka.consumer<type=(.+), client-id=(.+)><>(records-lag-max)
-    name: kafka_$1_$3
-    labels:
-      client-id: $2
+# sample result
+# kafka_consumer_fetch_manager_metrics_bytes_consumed_total{client_id="some_client-0",topic="some_topic",} 62818.0
+# kafka_consumer_fetch_manager_metrics_records_consumed_total{client_id="some_client-0",topic="some_topic",} 137.0
+#
+
+#- pattern: kafka.consumer<type=(.+), client-id=(.+), topic=(.+)><>(bytes-consumed-total|records-consumed-total)
+#  name: kafka_$1_$4
+#  labels:
+#    client-id: $2
+#    topic: $3
+#  type: COUNTER
+#
+##
+## kafka_consumer_fetch_manager_metrics_records_lag_max{client_id="some_client-0",} 0.0
+##
+#- pattern: kafka.consumer<type=(.+), client-id=(.+)><>(records-lag-max)
+#  name: kafka_$1_$3
+#  labels:
+#    client-id: $2
+
+#########################################################
+# Generic per-second counters with 0-2 key/value pairs
+#########################################################
+#- pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+), (.+)=(.+)><>Count
+#  name: kafka_$1_$2_$3_total
+#  type: COUNTER
+#  labels:
+#    "$4": "$5"
+#    "$6": "$7"
+#- pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+)><>Count
+#  name: kafka_$1_$2_$3_total
+#  type: COUNTER
+#  labels:
+#    "$4": "$5"
+#- pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*><>Count
+#  name: kafka_$1_$2_$3_total
+#  type: COUNTER
+
+#########################################################
+# Generic gauges with 0-2 key/value pairs
+#########################################################
+#- pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Value
+#  name: kafka_$1_$2_$3
+#  type: GAUGE
+#  labels:
+#    "$4": "$5"
+#    "$6": "$7"
+#- pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Value
+#  name: kafka_$1_$2_$3
+#  type: GAUGE
+#  labels:
+#    "$4": "$5"
+#- pattern: kafka.(\w+)<type=(.+), name=(.+)><>Value
+#  name: kafka_$1_$2_$3
+#  type: GAUGE

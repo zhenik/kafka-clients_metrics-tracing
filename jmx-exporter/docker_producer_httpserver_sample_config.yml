@@ -1,6 +1,6 @@
 ---
 startDelaySeconds: 0
-hostPort: consumer:5555
+hostPort: producer:5555
 username:
 password:
 ssl: false

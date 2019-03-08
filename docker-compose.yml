@@ -24,14 +24,16 @@ services:
 
   producer:
     build: producer-metrics
+    environment:
+      - HOST=producer
+      - JMX_PORT=5555
     depends_on:
       - zookeeper
       - kafka
+
 # https://github.com/cstroe/java-jmx-in-docker-sample-app/blob/master/bin/entrypoint.sh
   consumer:
     build: consumer-metrics
-    ports:
-      - 15555:5555
     environment:
       - HOST=consumer
       - JMX_PORT=5555
@@ -40,7 +42,7 @@ services:
       - kafka
 
 # https://github:com/rama-nallamilli/kafka-prometheus-monitoring/blob/master/docker-compose:yml
-  jmx-exporter:
+  jmx-exporter-consumer:
     build: jmx-exporter
     volumes:
       - ./jmx-exporter/docker_httpserver_sample_config.yml:/opt/jmx_prometheus_httpserver/httpserver_sample_config.yml
@@ -48,3 +50,12 @@ services:
       - 8080:8080
     depends_on:
       - consumer
+
+  jmx-exporter-producer:
+    build: jmx-exporter
+    volumes:
+      - ./jmx-exporter/docker_producer_httpserver_sample_config.yml:/opt/jmx_prometheus_httpserver/httpserver_sample_config.yml
+    ports:
+      - 8081:8080
+    depends_on:
+      - producer

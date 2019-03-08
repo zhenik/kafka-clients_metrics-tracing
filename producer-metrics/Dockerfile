@@ -1,5 +1,4 @@
 FROM java:8
-EXPOSE 15555
 COPY ./target/producer-metrics-1.0-SNAPSHOT.jar .
 CMD java -Dcom.sun.management.jmxremote \
            -Dcom.sun.management.jmxremote=true \

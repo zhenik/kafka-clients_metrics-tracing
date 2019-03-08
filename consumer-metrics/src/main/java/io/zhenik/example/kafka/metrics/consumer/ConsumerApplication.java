@@ -11,9 +11,10 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 
 public class ConsumerApplication {
   public static void main(String[] args) {
+    if (args.length==0) System.exit(1);
+    final String bootstrapServers = args[0];
     final Properties properties = new Properties();
-    //properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
-    properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
+    properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     properties.put(ConsumerConfig.GROUP_ID_CONFIG, "consumer-group-2");
     properties.put(ConsumerConfig.CLIENT_ID_CONFIG, "consumer-id-2");
     properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");

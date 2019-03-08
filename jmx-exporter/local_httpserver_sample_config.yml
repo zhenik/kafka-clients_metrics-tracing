@@ -1,6 +1,7 @@
 ---
 # consumer jmx
-hostPort: localhost:5555
+hostPort: 0.0.0.0:15555
+#jmxUrl: service:jmx:rmi:///jndi/rmi://0.0.0.0:15556/jmxrmi
 
 rules:
   - pattern: kafka.consumer<type=(.+), client-id=(.+), topic=(.+)><>(bytes-consumed-total|records-consumed-total)

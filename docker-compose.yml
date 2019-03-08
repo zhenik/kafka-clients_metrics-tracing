@@ -22,9 +22,20 @@ services:
     depends_on:
       - zookeeper
 
-  consumer:
-    build: ./consumer-metrics
+  producer:
+    build: producer-metrics
+    depends_on:
+      - zookeeper
+      - kafka
 
+  consumer:
+    build: consumer-metrics
+    ports:
+      - 15555:15555
+      - 15556:15556
+    depends_on:
+      - zookeeper
+      - kafka
 
   jmx-exporter:
     build: jmx-exporter
@@ -32,11 +43,6 @@ services:
       - ./jmx-exporter/httpserver_sample_config.yml:/opt/jmx_prometheus_httpserver/httpserver_sample_config.yml
     ports:
       - 8080:8080
-      - 5555:5555
-      - 5556:5556
-    environment:
-#      - JMX_PORT=49999
-#      - JMX_HOST=consumer
-      - HTTP_PORT=8080
-#      - JMX_EXPORTER_CONFIG_FILE=kafka.yml
+    depends_on:
+      - consumer
 

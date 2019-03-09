@@ -1,4 +1,4 @@
-FROM java:8
+FROM openjdk:8-jdk-stretch
 COPY ./target/producer-metrics-1.0-SNAPSHOT.jar .
 CMD java -Dcom.sun.management.jmxremote \
            -Dcom.sun.management.jmxremote=true \

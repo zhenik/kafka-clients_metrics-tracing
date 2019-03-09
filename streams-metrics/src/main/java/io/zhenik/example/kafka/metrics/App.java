@@ -15,6 +15,7 @@ import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.exporter.MetricsServlet;
 import io.prometheus.client.hotspot.DefaultExports;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
@@ -32,7 +33,7 @@ public class App extends Application<AppConfig> {
   // Create registry for Dropwizard metrics.
   private static final MetricRegistry metrics = new MetricRegistry();
   // Create a Dropwizard counter.
-  static final Counter counter = metrics.counter("my_example_counter_total");
+  static final Counter counter = metrics.counter("my_custom_counter_total");
 
   public static void main(String[] args) throws Exception {
     new App().run(args);
@@ -52,7 +53,7 @@ public class App extends Application<AppConfig> {
 
     //Tracing
     URLConnectionSender sender = URLConnectionSender.newBuilder()
-        .endpoint("http://zipkin:9411/api/v2/spans")
+        .endpoint(appConfig.getZipkinClientFactory().getUrl())
         .encoding(Encoding.PROTO3)
         .build();
     AsyncReporter<Span> reporter = AsyncReporter.builder(sender).build();
@@ -64,16 +65,13 @@ public class App extends Application<AppConfig> {
         .build();
     KafkaStreamsTracing kafkaStreamsTracing = KafkaStreamsTracing.create(tracing);
 
-    StreamsProcessing streamsProcessing = new StreamsProcessing("topic-in", "topic-out");
-
-    final Properties properties = new Properties();
-    properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "stream-app-id");
-    properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
-    properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-    properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-    KafkaStreams kafkaStreams =
-        kafkaStreamsTracing.kafkaStreams(streamsProcessing.buildTopology(), properties);
-    kafkaStreams.start();
+    StreamsProcessing streamsProcessing = new StreamsProcessing("topic-in", "topic-out", kafkaStreamsTracing, appConfig);
+    final ExecutorService executorService =
+        environment.lifecycle()
+            .executorService("kafka-streams-app-executor")
+            .maxThreads(1)
+            .build();
+    executorService.submit(streamsProcessing);
 
     log.info("Metrics initialization");
     counter.inc();
@@ -83,19 +81,6 @@ public class App extends Application<AppConfig> {
     // Add metrics about CPU, JVM memory etc.
     DefaultExports.initialize();
     log.info("Prometheus metrics are available on {}",  environment.getAdminContext().getContextPath() + "prometheus/metrics");
-
-    final KafkaStreamsMetricsExports kafkaStreamsMetricsExports =
-        new KafkaStreamsMetricsExports(kafkaStreams);
-    kafkaStreamsMetricsExports.register();
-
-    //final Map<MetricName, ? extends Metric> metrics = streamsProcessing.getKafkaStreams().metrics();
-    //metrics.forEach(
-    //    (k, v) -> {
-    //      System.out.println(k.name());
-    //      System.out.println(k.description());
-    //      System.out.println(v.metricValue());
-    //    });
-
   }
 
 

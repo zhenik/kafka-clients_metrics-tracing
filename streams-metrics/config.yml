@@ -1,8 +1,9 @@
 ---
 server:
-#  applicationConnectors:
-#  - type: http
-#    port: ${APPLICATION_PORT:-8080}
   adminConnectors:
   - type: http
     port: ${ADMIN_PORT:-18081}
+kafka:
+  bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:29092}
+zipkin:
+  url: ${ZIPKIN_URL:-http://localhost:9411/api/v2/spans}

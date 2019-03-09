@@ -1,5 +1,6 @@
 FROM openjdk:8-jdk-stretch
-COPY ./target/consumer-metrics-1.0-SNAPSHOT.jar .
+COPY ./target/streams-metrics-1.0-SNAPSHOT.jar .
+COPY ./config.yml .
 # https://github.com/cstroe/java-jmx-in-docker-sample-app/blob/master/bin/entrypoint.sh
 CMD java -Dcom.sun.management.jmxremote \
            -Dcom.sun.management.jmxremote=true \
@@ -10,4 +11,4 @@ CMD java -Dcom.sun.management.jmxremote \
            -Dcom.sun.management.jmxremote.host=$HOST \
            -Dcom.sun.management.jmxremote.port=$JMX_PORT \
            -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT \
-           -jar consumer-metrics-1.0-SNAPSHOT.jar kafka:9092
+           -jar streams-metrics-1.0-SNAPSHOT.jar server config.yml

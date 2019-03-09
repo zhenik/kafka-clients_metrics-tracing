@@ -1,5 +1,9 @@
 package io.zhenik.example.kafka.metrics;
 
+import brave.Tracing;
+import brave.kafka.streams.KafkaStreamsTracing;
+import brave.sampler.Sampler;
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -8,28 +12,19 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
+import io.prometheus.client.exporter.MetricsServlet;
 import io.prometheus.client.hotspot.DefaultExports;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import org.apache.kafka.common.Metric;
-import org.apache.kafka.common.MetricName;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import java.util.Properties;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsConfig;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.MetricRegistry;
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.dropwizard.DropwizardExports;
-
-import io.prometheus.client.exporter.MetricsServlet;
-import io.prometheus.client.hotspot.DefaultExports;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import zipkin2.Span;
+import zipkin2.codec.Encoding;
+import zipkin2.reporter.AsyncReporter;
+import zipkin2.reporter.urlconnection.URLConnectionSender;
 
 public class App extends Application<AppConfig> {
   private static Logger log = LoggerFactory.getLogger(App.class);
@@ -55,13 +50,30 @@ public class App extends Application<AppConfig> {
   @Override public void run(AppConfig appConfig, Environment environment) throws Exception {
     log.info("Configuration:\n {}", appConfig);
 
+    //Tracing
+    URLConnectionSender sender = URLConnectionSender.newBuilder()
+        .endpoint("http://zipkin:9411/api/v2/spans")
+        .encoding(Encoding.PROTO3)
+        .build();
+    AsyncReporter<Span> reporter = AsyncReporter.builder(sender).build();
+    Tracing tracing = Tracing.newBuilder()
+        .localServiceName("kafka-streams")
+        .traceId128Bit(true)
+        .sampler(Sampler.ALWAYS_SAMPLE)
+        .spanReporter(reporter)
+        .build();
+    KafkaStreamsTracing kafkaStreamsTracing = KafkaStreamsTracing.create(tracing);
+
     StreamsProcessing streamsProcessing = new StreamsProcessing("topic-in", "topic-out");
-    final ExecutorService executorService =
-        environment.lifecycle()
-            .executorService("kafka-streams-app-executor")
-            .maxThreads(1)
-            .build();
-    executorService.submit(streamsProcessing);
+
+    final Properties properties = new Properties();
+    properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "stream-app-id");
+    properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
+    properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+    properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+    KafkaStreams kafkaStreams =
+        kafkaStreamsTracing.kafkaStreams(streamsProcessing.buildTopology(), properties);
+    kafkaStreams.start();
 
     log.info("Metrics initialization");
     counter.inc();
@@ -73,7 +85,7 @@ public class App extends Application<AppConfig> {
     log.info("Prometheus metrics are available on {}",  environment.getAdminContext().getContextPath() + "prometheus/metrics");
 
     final KafkaStreamsMetricsExports kafkaStreamsMetricsExports =
-        new KafkaStreamsMetricsExports(streamsProcessing.getKafkaStreams());
+        new KafkaStreamsMetricsExports(kafkaStreams);
     kafkaStreamsMetricsExports.register();
 
     //final Map<MetricName, ? extends Metric> metrics = streamsProcessing.getKafkaStreams().metrics();

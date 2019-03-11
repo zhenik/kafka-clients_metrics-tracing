@@ -1,16 +1,24 @@
 # Kafka-clients jmx metrics
-Different modes how to expose metrics from Kafka-clients + [jmx-exporter](https://github.com/prometheus/jmx_exporter).
+Different modes how to expose metrics from Kafka-clients with Prometheus [jmx-exporter](https://github.com/prometheus/jmx_exporter).  
+
+Also example of kafka-clients tracing with [Zipkin](https://zipkin.io/).
 
 ### How to run
 * Build project `./mvnw clean install`
-* Run kafka `docker-compose up -d zookeeper kafka`
+* Run kafka `docker-compose up -d`
 
 ### Proof of concept 
+
 1. [Prometheus metrics with javaagent](./consumer-metrics/readme.md)
+
 ![javaagent](./docs/jmx-exporter-standalone.png)
+
 2. [Prometheus metrics with decoupled http server](./producer-metrics/readme.md)
+
 ![decoupled](./docs/jmx-exporter-decoupled.png)
+
 3. [Custom prometheus metrics & tracing with zipkin](./streams-metrics/readme.md)
+
 ![custom](./docs/jmx-exporter-custom-metrics.png)
 
 ### References 

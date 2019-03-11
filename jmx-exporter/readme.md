@@ -18,7 +18,7 @@ java -Dcom.sun.management.jmxremote \
 ```
 
 ### Exporter (can connect to docker container consumer)
-Exporter
+Prometheus http server
 ```bash
 java -jar jmx_prometheus_httpserver-0.11.0-jar-with-dependencies.jar 8080 local_httpserver_sample_config.yml
 ```

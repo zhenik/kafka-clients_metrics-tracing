@@ -11,6 +11,7 @@
     <module>streams-metrics</module>
     <module>consumer-metrics</module>
     <module>producer-metrics</module>
+      <module>example-jmx</module>
   </modules>
   <packaging>pom</packaging>
 
